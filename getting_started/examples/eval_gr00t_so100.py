@@ -284,6 +284,7 @@ if __name__ == "__main__":
                         [np.atleast_1d(action[f"action.{key}"][i]) for key in MODALITY_KEYS],
                         axis=0,
                     )
+                    # ziqi watch out, why is this 6? b/c so100 has 6 actions and states?
                     assert concat_action.shape == (6,), concat_action.shape
                     robot.set_target_state(torch.from_numpy(concat_action))
                     time.sleep(0.02)

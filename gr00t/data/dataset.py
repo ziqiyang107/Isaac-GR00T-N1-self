@@ -39,7 +39,8 @@ LE_ROBOT_EPISODE_FILENAME = "meta/episodes.jsonl"
 LE_ROBOT_TASKS_FILENAME = "meta/tasks.jsonl"
 LE_ROBOT_INFO_FILENAME = "meta/info.json"
 LE_ROBOT_STATS_FILENAME = "meta/stats.json"
-LE_ROBOT_DATA_FILENAME = "data/*/*.parquet"
+# LE_ROBOT_DATA_FILENAME = "data/*/*.parquet"
+LE_ROBOT_DATA_FILENAME = "data/chunk-000/*.parquet"  # ziqi now
 
 
 def calculate_dataset_statistics(parquet_paths: list[Path]) -> dict:

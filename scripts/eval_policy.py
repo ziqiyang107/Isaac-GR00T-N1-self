@@ -56,6 +56,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--steps", type=int, default=150, help="number of steps to run")
     parser.add_argument("--trajs", type=int, default=1, help="trajectories to run")
+    parser.add_argument("--traj_start", type=int, default=190, help="trajectories to run")  # ziqi add
+    parser.add_argument("--traj_end", type=int, default=207, help="trajectories to run")  # ziqi add
     parser.add_argument("--action_horizon", type=int, default=16)
     parser.add_argument("--video_backend", type=str, default="decord")
     parser.add_argument("--dataset_path", type=str, default="demo_data/robot_sim.PickNPlace/")
@@ -124,7 +126,8 @@ if __name__ == "__main__":
         else:
             print(k, v)
 
-    for k, v in dataset.get_step_data(0, 0).items():
+    # for k, v in dataset.get_step_data(0, 0).items():
+    for k, v in dataset.get_step_data(args.traj_start, 0).items():  # ziqi now
         if isinstance(v, np.ndarray):
             print(k, v.shape)
         else:
@@ -135,7 +138,8 @@ if __name__ == "__main__":
     print("Running on all trajs with modality keys:", args.modality_keys)
 
     all_mse = []
-    for traj_id in range(args.trajs):
+    # for traj_id in range(args.trajs):   # was
+    for traj_id in range(args.traj_start, args.traj_end):  # ziqi now
         print("Running trajectory:", traj_id)
         mse = calc_mse_for_single_trajectory(
             policy,

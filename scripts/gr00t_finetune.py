@@ -46,7 +46,7 @@ class Config:
     """Data configuration name from DATA_CONFIG_MAP."""
 
     # Training parameters
-    batch_size: int = 16
+    batch_size: int = 16     # was 16
     """Batch size per GPU for training."""
 
     max_steps: int = 10000
@@ -57,6 +57,9 @@ class Config:
 
     save_steps: int = 500
     """Number of steps between saving checkpoints."""
+    
+    save_total_limit: int = 100
+    """Number of total checkpoints saved."""
 
     # Model parameters
     base_model_path: str = "nvidia/GR00T-N1-2B"
@@ -183,7 +186,7 @@ def main(config: Config):
         save_strategy="steps",
         save_steps=config.save_steps,
         evaluation_strategy="no",
-        save_total_limit=8,
+        save_total_limit=config.save_total_limit,  # ziqi: was 8 
         report_to=config.report_to,
         seed=42,
         do_eval=False,
@@ -238,7 +241,8 @@ if __name__ == "__main__":
             script_path = Path(__file__).absolute()
             # Remove any existing CUDA_VISIBLE_DEVICES from environment
             if "CUDA_VISIBLE_DEVICES" in os.environ:
-                del os.environ["CUDA_VISIBLE_DEVICES"]
+            #     del os.environ["CUDA_VISIBLE_DEVICES"]   # ziqi comment out
+                pass  
 
             # Use subprocess.run instead of os.system
             cmd = [

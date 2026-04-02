@@ -19,6 +19,12 @@ import numpy as np
 from gr00t.data.dataset import LeRobotSingleDataset
 from gr00t.model.policy import BasePolicy
 
+
+import requests
+import time
+import cv2
+
+
 # numpy print precision settings 3, dont use exponential notation
 np.set_printoptions(precision=3, suppress=True)
 
@@ -32,6 +38,24 @@ def download_from_hg(repo_id: str, repo_type: str) -> str:
 
     repo_path = snapshot_download(repo_id, repo_type=repo_type)
     return repo_path
+
+# 机器人API配置
+ROBOT_IP = "192.168.0.211"  # 机器人IP地址
+API_BASE_URL = f"http://{ROBOT_IP}:8000"  # FastAPI默认端口
+# ziqi add:
+def send_action(target_state=[0.0]*16):
+        print('='*50)
+        print('target_state: ', target_state)
+        response = requests.post(
+            f"{API_BASE_URL}/action",
+            json={
+                "actions": {
+                    "left_arm": target_state[:8],
+                    "right_arm": target_state[8:16]
+                }
+            }
+        )
+        assert response.status_code == 200, "双臂+gripper动作执行失败"
 
 
 def calc_mse_for_single_trajectory(
@@ -64,7 +88,12 @@ def calc_mse_for_single_trajectory(
         gt_action_joints_across_time.append(concat_gt_action)
 
         if step_count % action_horizon == 0:
+            print('='*100)
             print("inferencing at step: ", step_count)
+            print(f'data_point video.webcam at step {step_count} shape: ', data_point['video.webcam'].shape)
+
+            data_point['video.webcam'][0] = cv2.cvtColor(data_point['video.webcam'][0], cv2.COLOR_BGR2RGB)   # ziqi add
+            cv2.imwrite('/home/YY/Isaac-GR00T/getting_started/output_image.jpg', data_point['video.webcam'][0])  # ziqi add
             action_chunk = policy.get_action(data_point)
             for j in range(action_horizon):
                 # NOTE: concat_pred_action = action[f"action.{modality_keys[0]}"][j]
@@ -73,6 +102,12 @@ def calc_mse_for_single_trajectory(
                     [np.atleast_1d(action_chunk[f"action.{key}"][j]) for key in modality_keys],
                     axis=0,
                 )
+                assert concat_pred_action.shape == (8,), concat_pred_action.shape  # ziqi: was 16 if left+right
+                ######### ziqi add
+                # send_action(list(concat_pred_action.data))
+                # time.sleep(0.05)
+                # print(f"joint 11 pred_action at step_count {step_count}, iter {j}: ", concat_pred_action[11:12])
+                #########
                 pred_action_joints_across_time.append(concat_pred_action)
 
     # plot the joints
@@ -117,6 +152,23 @@ def calc_mse_for_single_trajectory(
             ax.legend()
 
         plt.tight_layout()
-        plt.show()
-
+        ################## was:
+        # plt.show()
+        ################## ziqi add:
+        plt.savefig("/home/YY/tmp/output.png")
+        # 可选：关闭当前图形，防止内存泄露
+        plt.close()
+    ################################# ziqi add: 直接执行真实指令：
+    # print('='*100)
+    # print('直接执行真实指令')
+    # for i in gt_action_joints_across_time[::-1]:
+    #     print(i.shape)
+    #     print('右臂joint 11:')
+    #     print(list(i.data)[11:12])
+    #     send_action(list(i.data))
+    #     time.sleep(0.1)
+    # print('='*100)
+    # print('真实指令shape：')
+    # print(gt_action_joints_across_time.shape, type(gt_action_joints_across_time))
+    ################################
     return mse

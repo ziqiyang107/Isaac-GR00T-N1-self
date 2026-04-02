@@ -108,21 +108,36 @@ if __name__ == "__main__":
         # - action: action.right_hand: (16, 6)
         # - action: action.waist: (16, 3)
         obs = {
-            "video.ego_view": np.random.randint(0, 256, (1, 256, 256, 3), dtype=np.uint8),
+            "video.webcam": np.random.randint(0, 256, (1, 480, 640, 3), dtype=np.uint8),
+            "video.cam_right_wrist": np.random.randint(0, 256, (1, 480, 640, 3), dtype=np.uint8),
             "state.left_arm": np.random.rand(1, 7),
             "state.right_arm": np.random.rand(1, 7),
-            "state.left_hand": np.random.rand(1, 6),
-            "state.right_hand": np.random.rand(1, 6),
-            "state.waist": np.random.rand(1, 3),
-            "annotation.human.action.task_description": ["do your thing!"],
+            "state.left_gripper": np.random.rand(1, 1),
+            "state.right_gripper": np.random.rand(1, 1),
+            # "state.left_hand": np.random.rand(1, 1),
+            # "state.right_hand": np.random.rand(1, 1),
+            # "state.waist": np.random.rand(1, 3),
+            "annotation.human.action.task_description": ["Pick up the water bottle and place it in the basket."],
         }
 
         time_start = time.time()
         action = policy_client.get_action(obs)
         print(f"Total time taken to get action from server: {time.time() - time_start} seconds")
 
+        print('='*50)
+        print(f'action type: {type(action)}')
         for key, value in action.items():
-            print(f"Action: {key}: {value.shape}")
+            print(f"Action: {key} value:")
+            print(value)
+            print(f"value shape: {value.shape}")
 
     else:
         raise ValueError("Please specify either --server or --client")
+
+# ziqi 启动server服务：
+# best so far:
+# CUDA_VISIBLE_DEVICES=6 python scripts/inference_service.py --server --model_path /home/YY/tmp/fzwx-checkpoints-0423-Foam-3K-CuoKai --embodiment_tag new_embodiment --port 51807 --data_config fzwx --denoising_steps 8
+# CUDA_VISIBLE_DEVICES=6 python scripts/inference_service.py --server --model_path /home/YY/tmp/fzwx-checkpoints-0423-Foam-50K-CuoKai/checkpoint-10000 --embodiment_tag new_embodiment --port 51807 --data_config fzwx --denoising_steps 8
+
+# ziqi client侧请求server：
+# python scripts/inference_service.py --client --port 51807
